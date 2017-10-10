@@ -1,0 +1,16 @@
+{
+  "name": "dnd-att-gen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Daniel Gill",
+  "license": "MIT",
+  "dependencies": {
+    "@types/lodash": "^4.14.77",
+    "lodash": "^4.17.4",
+    "typescript": "^2.5.3"
+  }
+}
