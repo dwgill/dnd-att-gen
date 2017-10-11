@@ -1,4 +1,5 @@
-// import _ from 'lodash';
+//import _ from 'lodash';
+//import $ from 'jquery';
 // <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
 // <script>
 
@@ -31,13 +32,19 @@ interface ScoreSetValidator {
     (scoreRolloutSet: ScoreRolloutSet): boolean;
 }
 
-enum Attribute {
-    str = "STR",
-    dex = "DEX",
-    con = "CON",
-    int = "INT",
-    wis = "WIS",
-    cha = "CHA",
+type Attribute = string;
+
+namespace Attributes {
+    export const str: Attribute = "STR";
+    export const dex: Attribute = "DEX";
+    export const con: Attribute = "CON";
+    export const int: Attribute = "INT";
+    export const wis: Attribute = "WIS";
+    export const cha: Attribute = "CHA";
+
+    export function values(): Attribute[] {
+        return [str, dex, con, int, wis, cha];
+    }
 }
 
 function d6() { return _.random(1, 6, false); }
@@ -88,6 +95,11 @@ namespace Validators {
     export function colville_neo(scoreRolloutSet: ScoreRolloutSet) {
         return mod_of_at_least(scoreRolloutSet, 2);
     }
+    
+    /** The sum of all the scores' ability modifiers must be at least +0. */
+    export function nonnegative_mod(scoreRolloutSet: ScoreRolloutSet) {
+        return mod_of_at_least(scoreRolloutSet, 0);
+    }
 
     /** The sum of the ability scores themselves must be at least 70. */
     export function mercer(scoreRolloutSet: ScoreRolloutSet) {
@@ -101,6 +113,11 @@ namespace Validators {
     export function strict_filthy_casual_hard(scoreRolloutSet: ScoreRolloutSet) {
         return at_least_x_scores_of_y_value(scoreRolloutSet, 13, 2);
     }
+    
+    /** At least one score must be 13 or higher. */
+    export function one_over_13(scoreRolloutSet: ScoreRolloutSet) {
+        return at_least_x_scores_of_y_value(scoreRolloutSet, 13, 1);
+    }
 
     /** All ability scores must be at least 6. */
     export function all_at_least_six(scoreRolloutSet: ScoreRolloutSet) {
@@ -110,14 +127,19 @@ namespace Validators {
             .every(score => score >= 6);
     }
 
-    /** At least two scores must be 15 or higher and no score less than 6. */
-    export var validate_strict_filthy_casual = validate_all(strict_filthy_casual_hard, all_at_least_six);
+    /** At least two scores must be 13 or higher and no score less than 6. */
+    export var strict_filthy_casual = validate_all(strict_filthy_casual_hard, all_at_least_six);
+
+    /** Validates everything. */
+    export function all_good(scoreRolloutSet: ScoreRolloutSet) {
+        return true;
+    }
 
     /** Combine validators into one validator.
      * Produce a validator that validates a score set only if all the
      * provided validators would each validate it.
      */
-    function validate_all(...validators: ScoreSetValidator[]) {
+    function validate_all(...validators: ScoreSetValidator[]): ScoreSetValidator {
         return function(scoreRolloutSet: ScoreRolloutSet) {
             return _(validators)
             .map(validator => validator(scoreRolloutSet))
@@ -172,6 +194,7 @@ function print_score(score: ScoreRollout, attr?: Attribute): string {
 
     // Attribute Type (if applicable)
     if (attr) {
+        var attr_str; 
         result.push(attr, ": ");
     }
 
@@ -195,5 +218,18 @@ function print_score(score: ScoreRollout, attr?: Attribute): string {
 
     return result.join("");
 }
+
+function rollout_scores() {
+    var scores = roll_until_valid(DiceRolls._4d6k3, Validators.colville_orig);
+
+
+    Attributes.values()
+    .map((attr, index) => print_score(scores[index], attr))
+    .forEach((attr_str, index) => {
+        $('#att' + index).text(attr_str);
+    });
+}
+
+$("#rollout_button").click(rollout_scores);
 
 // </script>
