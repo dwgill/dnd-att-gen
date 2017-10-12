@@ -1,7 +1,6 @@
 // I uncomment these lines when working in vscode to insure the linter recognizes $ and _
 // import _ from 'lodash';
 // import $ from 'jquery';
-
 // These lines are necessary for embedding it on the page.
 // <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
 // <script>
