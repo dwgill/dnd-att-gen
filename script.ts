@@ -94,12 +94,12 @@ namespace Validators {
 
     /** The sum of all the scores' ability modifiers must be at least +2. */
     export function colville_neo(scoreRolloutSet: ScoreRolloutSet) {
-        return mod_of_at_least(scoreRolloutSet, 2);
+        return net_mod_of_at_least(scoreRolloutSet, 2);
     }
     
     /** The sum of all the scores' ability modifiers must be at least +0. */
-    export function nonnegative_mod(scoreRolloutSet: ScoreRolloutSet) {
-        return mod_of_at_least(scoreRolloutSet, 0);
+    export function nonnegative_net_mod(scoreRolloutSet: ScoreRolloutSet) {
+        return net_mod_of_at_least(scoreRolloutSet, 0);
     }
 
     /** The sum of the ability scores themselves must be at least 70. */
@@ -121,7 +121,7 @@ namespace Validators {
     }
 
     /** All ability scores must be at least 6. */
-    export function all_at_least_six(scoreRolloutSet: ScoreRolloutSet) {
+    export function none_under_six(scoreRolloutSet: ScoreRolloutSet) {
         return _(scoreRolloutSet)
             .map(rolloutSet => rolloutSet.component_dice)
             .map(_.sum)
@@ -129,7 +129,7 @@ namespace Validators {
     }
 
     /** At least two scores must be 13 or higher and no score less than 6. */
-    export var strict_filthy_casual = validate_all(strict_filthy_casual_hard, all_at_least_six);
+    export var strict_filthy_casual = validate_all(strict_filthy_casual_hard, none_under_six);
 
     /** Validates everything. */
     export function all_good(scoreRolloutSet: ScoreRolloutSet) {
@@ -148,6 +148,7 @@ namespace Validators {
         }
     }
 
+    /** Generalization of Colville's method */
     function at_least_x_scores_of_y_value(scoreRolloutSet: ScoreRolloutSet, x: number, y: number) {
         return _(scoreRolloutSet)
             .map(score => score.component_dice)
@@ -156,7 +157,8 @@ namespace Validators {
             .size() >= y;
     }
 
-    function mod_of_at_least(scoreRolloutSet: ScoreRolloutSet, value: number) {
+    /** Generalization of Colville's new method */
+    function net_mod_of_at_least(scoreRolloutSet: ScoreRolloutSet, value: number) {
         return _(scoreRolloutSet).map(calc_modifier).sum().valueOf() >= value;
     }
 
@@ -189,7 +191,7 @@ function calc_modifier(score: ScoreRollout) {
  * }
  * @param attr A string indicating the relevant attribute
  */
-function print_score(score: ScoreRollout, attr?: Attribute): string {
+function print_score(score: ScoreRollout, attr?: Attribute, show_dice?: boolean): string {
     var score_modifier: number = calc_modifier(score);
     var result: string[] = [];
 
@@ -208,33 +210,29 @@ function print_score(score: ScoreRollout, attr?: Attribute): string {
     result.push(score_modifier.toString(), ")");
 
     // The composition of the score
-    result.push(" [");
-    result.push(score.component_dice.toString());
+    if (show_dice) {
+        result.push(" [");
+        result.push(score.component_dice.toString());
 
-    // The discarded dice (if any)
-    if (score.discarded_dice.length > 0) {
-        result.push(" (", score.discarded_dice.toString(), ")");
+        // The discarded dice (if any)
+        if (score.discarded_dice.length > 0) {
+            result.push(" (", score.discarded_dice.toString(), ")");
+        }
+        result.push("]");
     }
-    result.push("]");
 
     return result.join("");
 }
 
-function rollout_scores(dice_roll: DiceRollMethod, validator: ScoreSetValidator, in_order: boolean) {
-    var scores = roll_until_valid(dice_roll, validator);
-
-    for (var i = 0; i < 6; i++) {
-        
-    }
-
-    Attributes.values()
-    .map((attr, index) => print_score(scores[index], attr))
-    .forEach(function(attr_str, index) {
-        $('#att' + index).text(attr_str);
-    });
+function rollout_scores(dice_roll: DiceRollMethod, validator: ScoreSetValidator,
+        in_order: boolean, show_dice: boolean) {
+    _(roll_until_valid(dice_roll, validator))
+    .zipWith(Attributes.values())
+    .map(([score_rollout, attr]) => print_score(score_rollout, in_order ? attr : null, show_dice))
+    .forEach((score_str, index) => $("#att" + index).text(score_str));
 }
 
-function fetch_parameters(): [DiceRollMethod, ScoreSetValidator, boolean] {
+function fetch_parameters(): [DiceRollMethod, ScoreSetValidator, boolean, boolean] {
     var dice_roll: DiceRollMethod;
     switch($("#diceroll-selection").val()) {
         case "4d6k3":
@@ -279,7 +277,10 @@ function fetch_parameters(): [DiceRollMethod, ScoreSetValidator, boolean] {
             validator = Validators.strict_filthy_casual;
             break;
         case "none-under-six":
-            validator = Validators.all_at_least_six;
+            validator = Validators.none_under_six;
+            break;
+        case "nonnegative-mod":
+            validator = Validators.nonnegative_net_mod;
             break;
         default:
             validator = Validators.all_good;
@@ -289,9 +290,13 @@ function fetch_parameters(): [DiceRollMethod, ScoreSetValidator, boolean] {
 
     var in_order = $('#attr-order').is(":checked");
 
-    return [dice_roll, validator, in_order];
+    var show_dice = $("#show-dice").is(":checked");
+
+    return [dice_roll, validator, in_order, show_dice];
 }
 
-$("#rollout_button").click(rollout_scores);
-
+$("#rollout_button").click(function() {
+    var [dice_roll, validator, in_order, show_dice] = fetch_parameters();
+    rollout_scores(dice_roll, validator, in_order, show_dice);
+});
 // </script>

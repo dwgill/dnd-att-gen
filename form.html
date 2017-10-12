@@ -1,29 +1,33 @@
-<h2 id="therollout">The Rollout</h2>
 <div>
-    <label for="diceroll-selection" >Dice Roll:</label>
-    <select id="diceroll-selection" style="padding: 1pt; width: fit-content;">
+    <label for="validator-selection">Guarantee</label>
+    <select id="validator-selection">
+        <option value="colville">Two scores must be 15 or more</option>
+        <option value="straight">Nothing</option>
+        <option value="colville-lite">One score must be 15 or more</option>
+        <option value="mercer">Sum of scores must be 70 or more</option>
+        <option value="colville-neo">Sum of ability mods must be 2 or more</option>
+        <option value="nonnegative-mod">Sum of ability mods not be negative</option>
+        <option value="sfc-hard">Two scores must be 13 or more</option>
+        <option value="one-13-or-more">One score must be 13 or more</option>
+        <option value="sfc">Two scores 13 or more and no scores under 6</option>
+        <option value="none-under-six">No scores under 6</option>
+    </select>
+</div>
+<div>
+    <label for="diceroll-selection" >Dice Roll</label>
+    <select id="diceroll-selection">
         <option value="4d6k3">Standard 4d6k3</option>
         <option value="3d6">Classic 3d6</option>
         <option value="2d6p6">Obscure 2d6+6</option>
     </select>
 </div>
 <div>
-    <label for="validator-selection">Guarantee:</label>
-    <select id="validator-selection" style="padding: 1pt; width: fit-content;">
-        <option value="colville">Two scores must be 15 or more</option>
-        <option value="straight">None</option>
-        <option value="colville-lite">One score must be 15 or more</option>
-        <option value="mercer">Sum of scores must be 70 or more</option>
-        <option value="colville-neo">Sum of ability mods must be 2 or more</option>
-        <option value="sfc-hard">Two scores must be 13 or more</option>
-        <option value="one-13-or-more">One scores must be 13 or more</option>
-        <option value="sfc">Two scores 13 or more and no scores under 6</option>
-        <option value="none-under-six">No scores under 6</option>
-    </select>
+    <label for="show-dice">Show each dice</label>
+    <input id="show-dice" type="checkbox">
 </div>
 <div>
-    <label for="attr-order">In order:</label>
-    <input id="attr-order" type="checkbox" style="padding: 0;">
+    <label for="attr-order">Roll in order</label>
+    <input id="attr-order" type="checkbox" checked>
 </div>
 <button id="rollout_button">Rollout Stats</button>
 <ul>
