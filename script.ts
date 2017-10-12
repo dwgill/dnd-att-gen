@@ -1,21 +1,10 @@
-import _ from 'lodash';
-import $ from 'jquery';
+// I uncomment these lines when working in vscode to insure the linter recognizes $ and _
+// import _ from 'lodash';
+// import $ from 'jquery';
+
+// These lines are necessary for embedding it on the page.
 // <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
 // <script>
-
-// FEATURES:
-// DICE ROLLS:
-// - 3d6
-// - 4d6k3
-// - 2d6+6
-
-// CONSTRAINTS:
-// - Straight
-// - At least 2 scores >= X
-// - At least 1 score >= X
-// - Sum(mods) >= 2
-// - Sum(mods) >= 1
-// - Sum(scores) >= 70
 
 interface ScoreRollout {
     component_dice: number[];
@@ -181,16 +170,7 @@ function calc_modifier(score: ScoreRollout) {
     return Math.floor((_.sum(score.component_dice) - 10) / 2);
 }
 
-/** Produce a string representation of the provided score rollout.
- * The format of the string is "{attribute}: {score} ({modifier}) {dice composition}"
- * The associated attribute, if omitted, will mean the string just starts
- * with the score.
- * @param score Object of the form {
- *      component_dice: number[],
- *      discarded_dice: number[],
- * }
- * @param attr A string indicating the relevant attribute
- */
+/** Produce a string representation of the provided score rollout. */
 function print_score(score: ScoreRollout, attr?: Attribute, show_dice?: boolean): string {
     var score_modifier: number = calc_modifier(score);
     var result: string[] = [];
