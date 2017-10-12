@@ -1,5 +1,5 @@
-//import _ from 'lodash';
-//import $ from 'jquery';
+import _ from 'lodash';
+import $ from 'jquery';
 // <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
 // <script>
 
@@ -34,6 +34,9 @@ interface ScoreSetValidator {
 
 type Attribute = string;
 
+function d6() { return _.random(1, 6, false); }
+
+
 namespace Attributes {
     export const str: Attribute = "STR";
     export const dex: Attribute = "DEX";
@@ -46,8 +49,6 @@ namespace Attributes {
         return [str, dex, con, int, wis, cha];
     }
 }
-
-function d6() { return _.random(1, 6, false); }
 
 /** Various means of randomly generating an ability score. */
 namespace DiceRolls {
@@ -115,7 +116,7 @@ namespace Validators {
     }
     
     /** At least one score must be 13 or higher. */
-    export function one_over_13(scoreRolloutSet: ScoreRolloutSet) {
+    export function one_at_least_13(scoreRolloutSet: ScoreRolloutSet) {
         return at_least_x_scores_of_y_value(scoreRolloutSet, 13, 1);
     }
 
@@ -219,15 +220,76 @@ function print_score(score: ScoreRollout, attr?: Attribute): string {
     return result.join("");
 }
 
-function rollout_scores() {
-    var scores = roll_until_valid(DiceRolls._4d6k3, Validators.colville_orig);
+function rollout_scores(dice_roll: DiceRollMethod, validator: ScoreSetValidator, in_order: boolean) {
+    var scores = roll_until_valid(dice_roll, validator);
 
+    for (var i = 0; i < 6; i++) {
+        
+    }
 
     Attributes.values()
     .map((attr, index) => print_score(scores[index], attr))
-    .forEach((attr_str, index) => {
+    .forEach(function(attr_str, index) {
         $('#att' + index).text(attr_str);
     });
+}
+
+function fetch_parameters(): [DiceRollMethod, ScoreSetValidator, boolean] {
+    var dice_roll: DiceRollMethod;
+    switch($("#diceroll-selection").val()) {
+        case "4d6k3":
+            dice_roll = DiceRolls._4d6k3;
+            break;
+        case "3d6":
+            dice_roll = DiceRolls._3d6;
+            break;
+        case "2d6p6":
+            dice_roll = DiceRolls._2d6p6;
+            break;
+        default:
+            dice_roll = DiceRolls._4d6k3;
+            $("#diceroll-selection").val("4d6k3");
+            break;
+    }
+
+    var validator: ScoreSetValidator;
+    switch($("#validator-selection").val()) {
+        case "colville":
+            validator = Validators.colville_orig;
+            break;
+        case "straight":
+            validator = Validators.all_good;
+            break;
+        case "colville-lite":
+            validator = Validators.colville_lite;
+            break;
+        case "mercer":
+            validator = Validators.mercer;
+            break;
+        case "colville-neo":
+            validator = Validators.colville_neo;
+            break;
+        case "sfc-hard":
+            validator = Validators.strict_filthy_casual_hard;
+            break;
+        case "one-13-or-more":
+            validator = Validators.one_at_least_13;
+            break;
+        case "sfc":
+            validator = Validators.strict_filthy_casual;
+            break;
+        case "none-under-six":
+            validator = Validators.all_at_least_six;
+            break;
+        default:
+            validator = Validators.all_good;
+            $("#validator-selection").val("straight");
+            break;
+    }
+
+    var in_order = $('#attr-order').is(":checked");
+
+    return [dice_roll, validator, in_order];
 }
 
 $("#rollout_button").click(rollout_scores);
