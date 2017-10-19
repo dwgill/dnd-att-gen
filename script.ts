@@ -72,12 +72,12 @@ namespace Validators {
 
     /** At least two scores must be 15 or higher. */
     export function colville_orig(scoreRolloutSet: ScoreRolloutSet) {
-        return at_least_x_scores_of_y_value(scoreRolloutSet, 15, 2);
+        return at_least_y_scores_of_x_value(scoreRolloutSet, 15, 2);
     }
 
     /** At least one score must be 15 or higher. */
     export function colville_lite(scoreRolloutSet: ScoreRolloutSet) {
-        return at_least_x_scores_of_y_value(scoreRolloutSet, 15, 1);
+        return at_least_y_scores_of_x_value(scoreRolloutSet, 15, 1);
     }
 
     /** The sum of all the scores' ability modifiers must be at least +2. */
@@ -100,12 +100,12 @@ namespace Validators {
 
     /** At least two scores must be 13 or higher. */
     export function strict_filthy_casual_hard(scoreRolloutSet: ScoreRolloutSet) {
-        return at_least_x_scores_of_y_value(scoreRolloutSet, 13, 2);
+        return at_least_y_scores_of_x_value(scoreRolloutSet, 13, 2);
     }
     
     /** At least one score must be 13 or higher. */
     export function one_at_least_13(scoreRolloutSet: ScoreRolloutSet) {
-        return at_least_x_scores_of_y_value(scoreRolloutSet, 13, 1);
+        return at_least_y_scores_of_x_value(scoreRolloutSet, 13, 1);
     }
 
     /** All ability scores must be at least 6. */
@@ -124,6 +124,22 @@ namespace Validators {
         return true;
     }
 
+    /** At least two scores >= 15, at least one score < 10 */
+    export function gill_one(scoreRolloutSet: ScoreRolloutSet) {
+        return (at_least_y_scores_of_x_value(scoreRolloutSet, 15, 2)
+            && at_least_y_scores_less_than_x(scoreRolloutSet, 10, 1))
+    }
+
+    /** At least one score >= 15, at least one *other* score >= 13 */
+    export function gill_two(scoreRolloutSet: ScoreRolloutSet) {
+        var thirteen_pluses = _(scoreRolloutSet)
+            .map(scoreRollout => scoreRollout.component_dice)
+            .map(componentDice => _.sum(componentDice))
+            .filter(score => score >= 13);
+
+        return thirteen_pluses.size() >= 2 && thirteen_pluses.max() >= 15;
+    }
+
     /** Combine validators into one validator.
      * Produce a validator that validates a score set only if all the
      * provided validators would each validate it.
@@ -137,11 +153,20 @@ namespace Validators {
     }
 
     /** Generalization of Colville's method */
-    function at_least_x_scores_of_y_value(scoreRolloutSet: ScoreRolloutSet, x: number, y: number) {
+    function at_least_y_scores_of_x_value(scoreRolloutSet: ScoreRolloutSet, x: number, y: number) {
         return _(scoreRolloutSet)
             .map(score => score.component_dice)
             .map(dice => _.sum(dice))
             .filter(score => score >= x)
+            .size() >= y;
+    }
+
+    /** Insure there are at least y scores less than x */
+    function at_least_y_scores_less_than_x(scoreRolloutSet: ScoreRolloutSet, x: number, y: number) {
+        return _(scoreRolloutSet)
+            .map(score => score.component_dice)
+            .map(dice => _.sum(dice))
+            .filter(score => score < x)
             .size() >= y;
     }
 
@@ -260,6 +285,12 @@ function fetch_parameters(): [DiceRollMethod, ScoreSetValidator, boolean, boolea
             break;
         case "nonnegative-mod":
             validator = Validators.nonnegative_net_mod;
+            break;
+        case "dwgill-one":
+            validator = Validators.gill_one;
+            break;
+        case "dwgill-two":
+            validator = Validators.gill_two;
             break;
         default:
             validator = Validators.all_good;
